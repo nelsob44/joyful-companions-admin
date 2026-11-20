@@ -1,17 +1,38 @@
-import React, { useContext, useState } from "react";
-import { assets } from "../assets/assets";
+import { useContext, useState, type SubmitEvent } from "react";
 import { AdminContext } from "../context/AdminContext";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { ADMIN_TOKEN_KEY } from "../constants/storageKeys";
+import type { LoginResponse } from "../types/admin";
+
+type LoginRole = "Admin" | "Companion";
 
 const Login = () => {
-  const [state, setState] = useState("Admin");
+  const [state, setState] = useState<LoginRole>("Admin");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const { setAdminToken, backendUrl } = useContext(AdminContext);
 
-  const onSubmitHandler = async (event) => {
+  const onSubmitHandler = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    try {
+      if (state === "Admin") {
+        const { data } = await axios.post<LoginResponse>(
+          backendUrl + "/api/admin/login",
+          { email, password },
+        );
+        if (data.success) {
+          localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+          setAdminToken(data.token);
+        } else {
+          toast.error(data.message);
+        }
+      } else {
+      }
+    } catch (error) {}
   };
 
   return (
